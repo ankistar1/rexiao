@@ -1,0 +1,287 @@
+/* 今日热搜 · 样式（Day 7 第 1 步：三栏骨架） */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: #f5f6f7;
+  color: #333;
+}
+
+.site-header {
+  text-align: center;
+  padding: 24px 16px 12px;
+}
+
+.site-header h1 {
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  color: #888;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* 三栏并排 */
+.boards {
+  display: flex;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 16px 40px;
+  align-items: flex-start;
+}
+
+.board {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.board-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.board-head h2 {
+  font-size: 16px;
+}
+
+.update-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.list {
+  list-style: none;
+}
+
+.list .placeholder {
+  color: #aaa;
+  font-size: 13px;
+  padding: 12px 0;
+  text-align: center;
+}
+
+/* 失败提示里的小「重试」按钮（Day 7 第 5 步：异常状态） */
+.placeholder .retry-btn {
+  margin-left: 8px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+/* 刷新按钮 */
+.refresh-btn {
+  margin-top: 10px;
+  padding: 6px 24px;
+  border: 1px solid #d0d1d3;
+  border-radius: 16px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  background: #f0f0f0;
+}
+
+/* 榜单条目：排名 + 标题 + 热度 一行 */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  border-bottom: 1px solid #f7f7f7;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: #f9f9fb;
+}
+
+.rank {
+  width: 22px;
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+  flex-shrink: 0;
+}
+
+/* 前三名标色 */
+.rank-1 { color: #ff6b35; font-weight: bold; }
+.rank-2 { color: #ff8c42; font-weight: bold; }
+.rank-3 { color: #ffa64d; font-weight: bold; }
+
+.title {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* PRD 五节：超长标题截断显示省略号 */
+}
+
+.hot {
+  font-size: 12px;
+  color: #b3b3b3;
+  flex-shrink: 0;
+}
+
+/* ===== F2 详情展开区域 ===== */
+.detail {
+  background: #fafbfd;
+  border-left: 3px solid #5b8def;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 4px 0 8px;
+}
+
+.detail-title {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.6; /* 完整标题换行显示，不再截断（PRD F2） */
+  word-break: break-all;
+}
+
+.detail-meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+}
+
+.detail-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+/* 详情里的两个按钮 */
+.btn {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: #5b8def;
+  color: #fff;
+  border: 1px solid #5b8def;
+}
+
+.btn-primary:hover {
+  background: #4a7de0;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #888;
+  border: 1px solid #d9d9de;
+}
+
+/* ===== F3 收藏与备注 ===== */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* 已收藏的星标按钮 */
+.btn-starred {
+  background: #fff7e6;
+  color: #d48806;
+  border: 1px solid #ffd666;
+}
+
+/* 备注输入区（点收藏后出现） */
+.fav-note {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.fav-note.hidden {
+  display: none;
+}
+
+.note-input {
+  flex: 1;
+  padding: 5px 10px;
+  border: 1px solid #d9d9de;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* 我的收藏面板 */
+.fav-panel {
+  max-width: 1100px;
+  margin: 12px auto 0;
+  padding: 0 16px;
+}
+
+.fav-panel.hidden {
+  display: none;
+}
+
+.fav-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid #f7f7f7;
+}
+
+.fav-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.fav-title {
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-note {
+  color: #ccc;
+}
+
+.fav-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 手机端：三栏变单列（PRD 五节：约 <768px） */
+@media (max-width: 768px) {
+  .boards {
+    flex-direction: column;
+  }
+}

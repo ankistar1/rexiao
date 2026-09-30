@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日热搜</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>今日热搜</h1>
+    <p class="subtitle">微博 · 知乎 · 百度 一页看全</p>
+    <div class="header-actions">
+      <button id="refresh-btn" class="refresh-btn">刷新</button>
+      <button id="fav-toggle-btn" class="refresh-btn">★ 我的收藏</button>
+    </div>
+  </header>
+
+  <section class="fav-panel hidden" id="fav-panel">
+    <div class="board">
+      <div class="board-head">
+        <h2>我的收藏</h2>
+        <span class="update-time" id="fav-count"></span>
+      </div>
+      <ul class="list" id="fav-list">
+        <li class="placeholder">暂无收藏，点击榜单条目试试</li>
+      </ul>
+    </div>
+  </section>
+
+  <main class="boards">
+    <section class="board" id="board-weibo">
+      <div class="board-head">
+        <h2>微博热搜</h2>
+        <span class="update-time" id="time-weibo">加载中…</span>
+      </div>
+      <ul class="list" id="list-weibo">
+        <li class="placeholder">加载中…</li>
+      </ul>
+    </section>
+
+    <section class="board" id="board-zhihu">
+      <div class="board-head">
+        <h2>知乎热榜</h2>
+        <span class="update-time" id="time-zhihu">加载中…</span>
+      </div>
+      <ul class="list" id="list-zhihu">
+        <li class="placeholder">加载中…</li>
+      </ul>
+    </section>
+
+    <section class="board" id="board-baidu">
+      <div class="board-head">
+        <h2>百度热搜</h2>
+        <span class="update-time" id="time-baidu">加载中…</span>
+      </div>
+      <ul class="list" id="list-baidu">
+        <li class="placeholder">加载中…</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
