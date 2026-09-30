@@ -40,6 +40,7 @@ body {
 
 .board {
   flex: 1;
+  min-width: 0; /* flex 子项默认不缩到比内容窄，缺这行长标题会把列撑宽、撑出横向滚动条 */
   background: #fff;
   border-radius: 10px;
   padding: 14px 16px;
@@ -127,6 +128,7 @@ body {
 
 .title {
   flex: 1;
+  min-width: 0; /* 同上：允许标题列收缩，省略号才能生效 */
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
@@ -283,5 +285,6 @@ body {
 @media (max-width: 768px) {
   .boards {
     flex-direction: column;
+    align-items: stretch; /* 单列时必须横向撑满，否则会退回按内容宽度自适应、被长标题撑出横向滚动条 */
   }
 }
