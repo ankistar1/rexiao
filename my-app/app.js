@@ -57,6 +57,55 @@ function formatHot(value) {
   return String(value);
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// 带自动重试的请求（Day 7 补）：实测本机网络会「成片地」瞬断（IPv6 走不通 + 外部链路不稳），
+// 一次失败不代表真失败。最多试 3 次，间隔 400ms / 1200ms，仍然失败才交给外层显示失败态。
+async function fetchJsonRetry(path, attempts = 3) {
+  const waits = [400, 1200];
+  let lastError = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const response = await fetch(API_BASE + path);
+      if (!response.ok) throw new Error("HTTP " + response.status); // 非 200 也算失败
+      const result = await response.json();
+      if (!result.data || !result.data.length) throw new Error("接口没有返回数据"); // 空数据同样算失败
+      return result;
+    } catch (error) {
+      lastError = error;
+      if (i < attempts - 1) await sleep(waits[i]); // 最后一次失败就直接抛，不再等
+    }
+  }
+  throw lastError;
+}
+
+// ===== 上次成功数据兜底（Day 7 补）：接口失败时显示 localStorage 里的上次数据，而不是直接失败 =====
+
+const CACHE_PREFIX = "rexiao_cache_"; // localStorage 缓存键前缀，如 rexiao_cache_weibo
+
+// 把一次成功的数据存起来：条目列表 + 抓取时间
+function saveBoardCache(platformId, items) {
+  try {
+    localStorage.setItem(
+      CACHE_PREFIX + platformId,
+      JSON.stringify({ savedAt: Date.now(), items: items })
+    );
+  } catch {
+    // localStorage 写不进去（比如隐私模式）就算了，不影响主流程
+  }
+}
+
+// 读上次缓存；没有或已损坏返回 null
+function readBoardCache(platformId) {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_PREFIX + platformId) || "null");
+  } catch {
+    return null;
+  }
+}
+
 // 拉取一个平台的榜单并画到对应栏里
 async function loadBoard(platform) {
   const listEl = document.getElementById("list-" + platform.id);
@@ -65,16 +114,26 @@ async function loadBoard(platform) {
   listEl.innerHTML = '<li class="placeholder">加载中…</li>';
   timeEl.textContent = "";
   try {
-    const response = await fetch(API_BASE + platform.path);
-    if (!response.ok) throw new Error("HTTP " + response.status); // 非 200 也算失败
-    const result = await response.json();
+    const result = await fetchJsonRetry(platform.path);
     const items = (result.data || []).slice(0, MAX_ITEMS).map(platform.map);
-    if (!items.length) throw new Error("接口没有返回数据"); // 空数据同样走失败提示
     boardData[platform.id] = items; // 缓存本栏数据，点条目时用来展开详情（F2）
+    saveBoardCache(platform.id, items); // 存进 localStorage，下次失败时兜底
     listEl.innerHTML = items.map(renderItem).join("");
     timeEl.textContent = "更新于 " + formatTime(new Date());
   } catch (error) {
-    // PRD 第七节：单个平台失败，该栏显示失败文案 + 重试按钮，不影响另外两栏
+    // 兜底优先：有上次成功的数据就先显示它（标注可能过期），不直接报失败
+    const cache = readBoardCache(platform.id);
+    if (cache && cache.items && cache.items.length) {
+      boardData[platform.id] = cache.items;
+      listEl.innerHTML =
+        '<li class="placeholder stale">接口暂时拉不到，以下是上次的数据（可能过期） ' +
+        '<button class="btn btn-ghost retry-btn" data-platform="' + platform.id + '" type="button">重新拉取</button>' +
+        "</li>" +
+        cache.items.map(renderItem).join("");
+      timeEl.textContent = "上次更新于 " + formatTime(new Date(cache.savedAt));
+      return;
+    }
+    // 连兜底都没有（第一次用、或从没成功过）：PRD 第七节的失败文案 + 重试
     boardData[platform.id] = [];
     listEl.innerHTML =
       '<li class="placeholder">该平台暂时获取失败 ' +

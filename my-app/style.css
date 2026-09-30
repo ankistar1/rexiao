@@ -76,6 +76,16 @@ body {
   text-align: center;
 }
 
+/* 「以下是上次的数据」过期提示条（Day 7 补：接口失败时的兜底状态） */
+.list .placeholder.stale {
+  color: #8a6d3b;
+  background: #fdf6e3;
+  border: 1px solid #f0e2c0;
+  border-radius: 8px;
+  padding: 8px 6px;
+  margin: 4px 0;
+}
+
 /* 失败提示里的小「重试」按钮（Day 7 第 5 步：异常状态） */
 .placeholder .retry-btn {
   margin-left: 8px;
