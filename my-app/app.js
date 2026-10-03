@@ -3,6 +3,13 @@
 
 const API_BASE = "https://60s-api.viki.moe";
 
+// ===== mock 模式（Day 8 板块③）：URL 带 ?mock=1 就用本地假数据，不发任何请求 =====
+// 用法：http://localhost:8000/?mock=1          → 三栏假数据
+//       http://localhost:8000/?mock=1&empty=1  → 知乎栏演示「暂无数据」空状态
+const urlParams = new URLSearchParams(location.search);
+const MOCK_MODE = urlParams.has("mock");
+const MOCK_EMPTY = urlParams.has("empty");
+
 // 三个平台的配置：接口路径 + 字段映射。
 // 各平台返回的字段名不一样（微博是 hot_value、知乎是 hot_value_desc、百度是 score_desc），
 // 这里统一映射成 PRD 六节定义的字段：id / rank / title / hotValue / url。
@@ -69,10 +76,9 @@ async function fetchJsonRetry(path, attempts = 3) {
   for (let i = 0; i < attempts; i++) {
     try {
       const response = await fetch(API_BASE + path);
-      if (!response.ok) throw new Error("HTTP " + response.status); // 非 200 也算失败
-      const result = await response.json();
-      if (!result.data || !result.data.length) throw new Error("接口没有返回数据"); // 空数据同样算失败
-      return result;
+      if (!response.ok) throw new Error("HTTP " + response.status); // 非 200 算失败
+      // 注意：「接口返回 0 条」不算失败，原样返回 —— 由 loadBoard 显示「暂无数据」（Day 8：空数据是独立状态）
+      return await response.json();
     } catch (error) {
       lastError = error;
       if (i < attempts - 1) await sleep(waits[i]); // 最后一次失败就直接抛，不再等
@@ -113,9 +119,34 @@ async function loadBoard(platform) {
   // PRD 第七节：请求期间显示「加载中…」（点刷新时各栏也会先回到这个状态）
   listEl.innerHTML = '<li class="placeholder">加载中…</li>';
   timeEl.textContent = "";
+  // mock 模式：直接用 mock.js 里的假数据，不发请求（Day 8 板块③）
+  if (MOCK_MODE) {
+    await sleep(300); // 短暂等待，让「加载中」状态肉眼可见（也顺便演示状态 ②）
+    let items = (window.MOCK_BOARDS && window.MOCK_BOARDS[platform.id]) || [];
+    if (MOCK_EMPTY && platform.id === "zhihu") items = []; // &empty=1：知乎栏演示空数据状态
+    boardData[platform.id] = items;
+    if (!items.length) {
+      listEl.innerHTML = '<li class="placeholder">暂无数据（mock 演示）</li>';
+    } else {
+      listEl.innerHTML = items.map(renderItem).join("");
+    }
+    timeEl.textContent = "演示数据";
+    return;
+  }
   try {
     const result = await fetchJsonRetry(platform.path);
     const items = (result.data || []).slice(0, MAX_ITEMS).map(platform.map);
+    // 空数据状态（Day 8）：接口正常返回了但一条都没有 —— 这是「正常但没内容」，
+    // 和「获取失败」是两回事：不报错、不触发缓存兜底，显示独立文案
+    if (!items.length) {
+      boardData[platform.id] = [];
+      listEl.innerHTML =
+        '<li class="placeholder">暂无数据 ' +
+        '<button class="btn btn-ghost retry-btn" data-platform="' + platform.id + '" type="button">刷新试试</button>' +
+        "</li>";
+      timeEl.textContent = "更新于 " + formatTime(new Date());
+      return;
+    }
     boardData[platform.id] = items; // 缓存本栏数据，点条目时用来展开详情（F2）
     saveBoardCache(platform.id, items); // 存进 localStorage，下次失败时兜底
     listEl.innerHTML = items.map(renderItem).join("");
@@ -407,5 +438,10 @@ function favTitlePlatform(itemId) {
 document.getElementById("refresh-btn").addEventListener("click", loadAll);
 
 // 页面打开就加载
+if (MOCK_MODE) {
+  // mock 模式下在副标题标注，一眼能看出这不是真实数据（截图/演示时不误导人）
+  const subtitle = document.querySelector(".subtitle");
+  if (subtitle) subtitle.textContent += " · 【演示模式：本地假数据】";
+}
 loadAll();
 renderFavPanel(); // 同时把上次的收藏画出来（PRD C2：重开页面收藏仍在）
