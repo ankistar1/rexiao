@@ -119,6 +119,7 @@ async function loadBoard(platform) {
   // PRD 第七节：请求期间显示「加载中…」（点刷新时各栏也会先回到这个状态）
   listEl.innerHTML = '<li class="placeholder">加载中…</li>';
   timeEl.textContent = "";
+  boardRendered[platform.id] = false; // 加载中：不参与筛选（Day 12）
   // mock 模式：直接用 mock.js 里的假数据，不发请求（Day 8 板块③）
   if (MOCK_MODE) {
     await sleep(300); // 短暂等待，让「加载中」状态肉眼可见（也顺便演示状态 ②）
@@ -126,11 +127,14 @@ async function loadBoard(platform) {
     if (MOCK_EMPTY && platform.id === "zhihu") items = []; // &empty=1：知乎栏演示空数据状态
     boardData[platform.id] = items;
     if (!items.length) {
+      boardRendered[platform.id] = false; // 空数据：保持独立空态，不参与筛选
       listEl.innerHTML = '<li class="placeholder">暂无数据（mock 演示）</li>';
     } else {
-      listEl.innerHTML = items.map(renderItem).join("");
+      boardRendered[platform.id] = true;
+      renderBoardList(platform); // 走筛选管道（Day 12）
     }
     timeEl.textContent = "演示数据";
+    updateFilterCount();
     return;
   }
   try {
@@ -140,6 +144,7 @@ async function loadBoard(platform) {
     // 和「获取失败」是两回事：不报错、不触发缓存兜底，显示独立文案
     if (!items.length) {
       boardData[platform.id] = [];
+      boardRendered[platform.id] = false; // 空数据状态（Day 8）不参与筛选
       listEl.innerHTML =
         '<li class="placeholder">暂无数据 ' +
         '<button class="btn btn-ghost retry-btn" data-platform="' + platform.id + '" type="button">刷新试试</button>' +
@@ -149,23 +154,27 @@ async function loadBoard(platform) {
     }
     boardData[platform.id] = items; // 缓存本栏数据，点条目时用来展开详情（F2）
     saveBoardCache(platform.id, items); // 存进 localStorage，下次失败时兜底
-    listEl.innerHTML = items.map(renderItem).join("");
+    boardRendered[platform.id] = true;
+    renderBoardList(platform); // 走筛选管道（Day 12）
     timeEl.textContent = "更新于 " + formatTime(new Date());
+    updateFilterCount();
   } catch (error) {
     // 兜底优先：有上次成功的数据就先显示它（标注可能过期），不直接报失败
     const cache = readBoardCache(platform.id);
     if (cache && cache.items && cache.items.length) {
       boardData[platform.id] = cache.items;
+      boardRendered[platform.id] = true; // 兜底数据也参与筛选（Day 12）
       listEl.innerHTML =
         '<li class="placeholder stale">接口暂时拉不到，以下是上次的数据（可能过期） ' +
         '<button class="btn btn-ghost retry-btn" data-platform="' + platform.id + '" type="button">重新拉取</button>' +
         "</li>" +
-        cache.items.map(renderItem).join("");
+        filteredItemsHtml(platform);
       timeEl.textContent = "上次更新于 " + formatTime(new Date(cache.savedAt));
       return;
     }
     // 连兜底都没有（第一次用、或从没成功过）：PRD 第七节的失败文案 + 重试
     boardData[platform.id] = [];
+    boardRendered[platform.id] = false; // 失败态不参与筛选
     listEl.innerHTML =
       '<li class="placeholder">该平台暂时获取失败 ' +
       '<button class="btn btn-ghost retry-btn" data-platform="' + platform.id + '" type="button">重试</button>' +
@@ -176,6 +185,69 @@ async function loadBoard(platform) {
 
 // 各栏数据缓存：{ weibo: [...], zhihu: [...], baidu: [...] }
 const boardData = {};
+
+// ===== 关键词筛选（Day 12，按 skills/filter-interaction/SKILL.md 实现）=====
+// 筛选只对内存里的 boardData 做过滤，不新增网络请求；
+// 三种情况：有结果 / 无结果（空态+出口，不是报错）/ 清空恢复。
+
+let filterKeyword = ""; // 当前筛选词（小写）；空字符串 = 未筛选
+
+// 本栏是否处于「已渲染条目」状态：加载中/失败/空数据的栏不参与筛选重渲染，
+// 否则输入筛选词会把「加载中…」占位误刷成「没有匹配」（Skill 坑 1 的变体）
+const boardRendered = {};
+
+// 按当前筛选词过滤一栏数据，返回列表 HTML（有结果 / 无结果两种形态）
+function filteredItemsHtml(platform) {
+  const items = boardData[platform.id] || [];
+  if (!filterKeyword) {
+    return items.map(renderItem).join("");
+  }
+  const matched = items.filter((i) => i.title.toLowerCase().includes(filterKeyword));
+  if (matched.length) {
+    return matched.map(renderItem).join("");
+  }
+  // 无结果：空态文案（筛选词要转义，Skill 第 4 条）+「清空筛选」出口（Skill 第 2 条）
+  return (
+    '<li class="placeholder">没有匹配「' + escapeHtml(filterKeyword) + '」的条目 ' +
+    '<button class="btn btn-ghost filter-clear" type="button">清空筛选</button>' +
+    "</li>"
+  );
+}
+
+// 重画一栏（只对已渲染条目的栏生效）
+function renderBoardList(platform) {
+  document.getElementById("list-" + platform.id).innerHTML = filteredItemsHtml(platform);
+}
+
+// 反馈（Skill 第 3 条）：实时计数「匹配数/总数」，状态翻转式反馈
+function updateFilterCount() {
+  let total = 0;
+  let matched = 0;
+  PLATFORMS.forEach((p) => {
+    if (!boardRendered[p.id]) return;
+    const items = boardData[p.id] || [];
+    total += items.length;
+    if (filterKeyword) {
+      matched += items.filter((i) => i.title.toLowerCase().includes(filterKeyword)).length;
+    }
+  });
+  document.getElementById("filter-count").textContent = filterKeyword ? matched + "/" + total + " 条" : "";
+}
+
+// 应用筛选到所有已渲染的栏
+function applyFilter() {
+  PLATFORMS.forEach((p) => {
+    if (boardRendered[p.id]) renderBoardList(p);
+  });
+  updateFilterCount();
+}
+
+// 输入实时过滤（Skill 第 6 条）；空字符串等同清空，走恢复逻辑
+document.getElementById("filter-input").addEventListener("input", (event) => {
+  filterKeyword = event.target.value.trim().toLowerCase();
+  applyFilter();
+});
+
 
 // 一条榜单条目的 HTML：排名 + 标题 + 热度
 function renderItem(item) {
@@ -202,7 +274,11 @@ function escapeHtml(text) {
 }
 
 // 三个平台同时拉取，互不等待，谁先回来谁先显示
+// 刷新时清空筛选（Skill 第 6 条：筛选状态默认不跨刷新保留，简单优先）
 function loadAll() {
+  filterKeyword = "";
+  document.getElementById("filter-input").value = "";
+  updateFilterCount();
   PLATFORMS.forEach(loadBoard);
 }
 
@@ -294,6 +370,15 @@ document.addEventListener("click", (event) => {
     if (window.confirm("取消收藏后备注也会一并删除，确定吗？")) {
       removeFavorite(event.target.dataset.id);
     }
+    return;
+  }
+  // 空态里的「清空筛选」出口（Day 12，Skill 第 2 条）
+  if (event.target.classList.contains("filter-clear")) {
+    const input = document.getElementById("filter-input");
+    input.value = "";
+    filterKeyword = "";
+    applyFilter();
+    input.focus();
     return;
   }
   // 单栏失败后的「重试」按钮：只重新拉取该平台（PRD 第七节）

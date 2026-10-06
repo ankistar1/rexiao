@@ -34,6 +34,12 @@
   </section>
 
   <main class="boards view" id="view-hot">
+    <!-- 关键词筛选（Day 12）：实时过滤三栏内存数据，不发请求 -->
+    <div class="filter-bar" id="filter-bar">
+      <input type="text" id="filter-input" class="filter-input" placeholder="输入关键词，同时筛选三个榜单…" maxlength="30" autocomplete="off">
+      <span class="filter-count" id="filter-count"></span>
+    </div>
+
     <section class="board" id="board-weibo">
       <div class="board-head">
         <h2>微博热搜</h2>
