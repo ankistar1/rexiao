@@ -406,10 +406,37 @@ function handleNoteSave(btn) {
   }
 }
 
-// 展开/收起「我的收藏」面板（顶部固定入口，PRD 五节）
-document.getElementById("fav-toggle-btn").addEventListener("click", () => {
-  document.getElementById("fav-panel").classList.toggle("hidden");
-});
+// ===== hash 路由（Day 13）：三个视图 #/hot #/fav #/about =====
+// 选 hash 而不是显隐切换/多 HTML：地址即状态（可直接分享、刷新不丢），
+// 后退键天然可用（每条 hash 都进历史记录），且只有 hashchange + location.hash 两个原生 API。
+const ROUTES = ["hot", "fav", "about"];
+
+// 从地址栏解析当前视图名；不认识的一律回热榜（含空 hash）
+function currentRoute() {
+  const name = location.hash.replace(/^#\/?/, "");
+  return ROUTES.includes(name) ? name : "hot";
+}
+
+// 按当前 hash 切换视图 + 高亮导航（hashchange 和首次打开都走这里）
+function renderRoute() {
+  const route = currentRoute();
+  document.querySelectorAll(".view").forEach((view) => {
+    view.classList.toggle("hidden", view.id !== "view-" + route);
+  });
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    link.classList.toggle("active", link.dataset.view === route);
+  });
+  // 刷新按钮只在热榜视图有意义（收藏/关于不联网拉数据）
+  document.getElementById("refresh-btn").classList.toggle("hidden", route !== "hot");
+}
+
+window.addEventListener("hashchange", renderRoute);
+// 首次打开：没有 hash 就补一个 #/hot（赋值会自动触发 hashchange），有就直接渲染
+if (!location.hash) {
+  location.hash = "#/hot";
+} else {
+  renderRoute();
+}
 
 // 画「我的收藏」面板：标题 + 来源 + 备注 + 操作（时间倒序）
 function renderFavPanel() {
@@ -418,7 +445,11 @@ function renderFavPanel() {
   const list = getFavorites();
   countEl.textContent = list.length ? list.length + " 条" : "";
   if (!list.length) {
-    listEl.innerHTML = '<li class="placeholder">暂无收藏，点击榜单条目试试</li>';
+    // 空收藏（Day 13 补四态）：不只说「没有」，还给出下一步动作的出口
+    listEl.innerHTML =
+      '<li class="placeholder">还没有收藏。到' +
+      ' <a class="btn btn-ghost" href="#/hot">热榜</a> ' +
+      '点开一条热搜，再点「☆ 收藏」试试。</li>';
     return;
   }
   listEl.innerHTML = list

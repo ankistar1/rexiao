@@ -11,6 +11,7 @@
   --line: #f0f0f0;
   --bg-page: #f5f6f7;
   --bg-card: #ffffff;
+  --primary: #5b8def;    /* 主操作色：与详情区左边框同源（Day 13 起） */
 }
 
 * {
@@ -211,7 +212,8 @@ body {
 /* 尊重系统"减少动态效果"设置：关掉动效，保留状态反馈（Day 11） */
 @media (prefers-reduced-motion: reduce) {
   .detail,
-  .detail.closing {
+  .detail.closing,
+  .view {
     animation: none;
   }
 }
@@ -295,16 +297,8 @@ body {
   font-size: 13px;
 }
 
-/* 我的收藏面板 */
-.fav-panel {
-  max-width: 1100px;
-  margin: 12px auto 0;
-  padding: 0 16px;
-}
-
-.fav-panel.hidden {
-  display: none;
-}
+/* 我的收藏视图（Day 13：由「面板」升级为正式视图，交给 .view 的显隐规则统一管理；
+   原 .fav-panel 相关规则已移除——那条开合逻辑被 hash 路由取代） */
 
 .fav-item {
   display: flex;
@@ -347,6 +341,101 @@ body {
   flex-shrink: 0;
 }
 
+/* ===== 多视图导航与切换（Day 13 hash 路由）===== */
+.main-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.nav-link {
+  padding: 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card);
+  color: var(--text-sub);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* 当前视图的导航项：主色实底反白（状态翻转式反馈，Day 11 同款思路） */
+.nav-link.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* 同一时刻只显示一个视图；切入时轻微淡入（150ms 以内感知为“即时”） */
+.view.hidden {
+  display: none;
+}
+
+.view {
+  animation: view-in 0.15s ease-out;
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 「关于」页排版：静态说明页，不需要列表样式 */
+.about-card {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.about-body {
+  padding: 12px 0 4px;
+  line-height: 1.7;
+}
+
+.about-body h3 {
+  margin: 12px 0 4px;
+  font-size: 15px;
+}
+
+.about-body p,
+.about-body ul {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.about-body ul {
+  padding-left: 20px;
+}
+
+.about-body a {
+  color: var(--primary);
+}
+
+.about-body code {
+  background: var(--bg-page);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 13px;
+}
+
+.about-meta {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--text-sub);
+  font-size: 13px;
+}
+
 /* 手机端：三栏变单列（PRD 五节：约 <768px） */
 @media (max-width: 768px) {
   .boards {
@@ -358,4 +447,10 @@ body {
   .refresh-btn {
     min-height: 44px;
   }
+}
+
+/* 通用隐藏规则（Day 13）：.hidden 只改 display，不销毁元素。
+   放在文件末尾，保证它压过任何带 display 的单类选择器（如 .refresh-btn.hidden）。 */
+.hidden {
+  display: none;
 }

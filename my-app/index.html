@@ -10,13 +10,18 @@
   <header class="site-header">
     <h1>今日热搜</h1>
     <p class="subtitle">微博 · 知乎 · 百度 一页看全</p>
+    <nav class="main-nav" aria-label="主导航">
+      <a href="#/hot" class="nav-link" data-view="hot">热榜</a>
+      <a href="#/fav" class="nav-link" data-view="fav">★ 我的收藏</a>
+      <a href="#/about" class="nav-link" data-view="about">关于</a>
+    </nav>
     <div class="header-actions">
       <button id="refresh-btn" class="refresh-btn">刷新</button>
-      <button id="fav-toggle-btn" class="refresh-btn">★ 我的收藏</button>
     </div>
   </header>
 
-  <section class="fav-panel hidden" id="fav-panel">
+  <!-- 三个视图（Day 13 hash 路由）：同一时刻只显示一个，由 app.js 按 #/xxx 切换 -->
+  <section class="view hidden" id="view-fav">
     <div class="board">
       <div class="board-head">
         <h2>我的收藏</h2>
@@ -28,7 +33,7 @@
     </div>
   </section>
 
-  <main class="boards">
+  <main class="boards view" id="view-hot">
     <section class="board" id="board-weibo">
       <div class="board-head">
         <h2>微博热搜</h2>
@@ -59,6 +64,29 @@
       </ul>
     </section>
   </main>
+
+  <section class="view hidden" id="view-about">
+    <div class="board about-card">
+      <div class="board-head">
+        <h2>关于「今日热搜」</h2>
+      </div>
+      <div class="about-body">
+        <h3>这是什么</h3>
+        <p>把微博、知乎、百度三个平台的热榜聚合在一页里浏览的小工具，纯前端实现（HTML / CSS / JavaScript），无后端、无数据库。</p>
+        <h3>数据来源</h3>
+        <p>榜单数据来自开源接口 <a href="https://github.com/vikiboss/60s" target="_blank" rel="noopener">60s API</a>，每次打开或点「刷新」时实时拉取；拉取失败时会自动重试，并回退显示上次成功的数据（页面会标注「可能过期」）。</p>
+        <h3>功能</h3>
+        <ul>
+          <li>点任意条目展开详情，可查看原文、收藏、写备注</li>
+          <li>收藏和备注保存在浏览器本地（localStorage），只存在你这台设备上</li>
+          <li>顶部导航可在「热榜 / 收藏 / 关于」三个视图间切换，支持浏览器前进/后退</li>
+        </ul>
+        <h3>演示模式</h3>
+        <p>网址后面加 <code>?mock=1</code> 用本地假数据演示（不联网）；再加 <code>&amp;empty=1</code> 可以演示「暂无数据」的空状态。</p>
+        <p class="about-meta">28 天 vibe-coding 训练营项目 · 代码托管在 GitHub（ankistar1/rexiao）</p>
+      </div>
+    </div>
+  </section>
 
   <!-- mock 假数据：只在 URL 带 ?mock=1 时被用到（Day 8） -->
   <script src="mock.js"></script>
