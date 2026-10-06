@@ -141,6 +141,16 @@ body {
   background: #f9f9fb;
 }
 
+/* 展开中的条目保持高亮：状态翻转式反馈，用户一眼确认哪条已展开（Day 11） */
+.item.active {
+  background: #eef3fd;
+}
+
+/* 按下瞬间的即时反馈（0-100ms 层）：背景加深，手指还没松开就"有了回应"（Day 11） */
+.item:active {
+  background: #e3eaf8;
+}
+
 .rank {
   width: 22px;
   text-align: center;
@@ -176,6 +186,34 @@ body {
   border-radius: 6px;
   padding: 12px 16px; /* 间距档位：12/16（原 12px 14px） */
   margin: 4px 0 8px;
+}
+
+/* 展开动效：向下滑出（Day 11 交互反馈；200ms 在 150-300ms 舒适区） */
+@keyframes detail-open {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 收起动效：向上收起并淡出（Day 11） */
+@keyframes detail-close {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+
+.detail {
+  animation: detail-open 0.2s ease-out;
+}
+
+.detail.closing {
+  animation: detail-close 0.15s ease-in forwards;
+}
+
+/* 尊重系统"减少动态效果"设置：关掉动效，保留状态反馈（Day 11） */
+@media (prefers-reduced-motion: reduce) {
+  .detail,
+  .detail.closing {
+    animation: none;
+  }
 }
 
 .detail-title {

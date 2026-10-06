@@ -217,19 +217,31 @@ PLATFORMS.forEach((platform) => {
   });
 });
 
-// 展开 / 收起一条热搜的详情
+// 展开 / 收起一条热搜的详情（Day 11：加动画收起 + 展开条目高亮反馈）
 function toggleDetail(itemEl, platformId) {
-  const existing = document.querySelector("#list-" + platformId + " .detail");
+  const existing = document.querySelector("#list-" + platformId + " .detail:not(.closing)");
   // 已有详情展开：如果是同一条 → 收起；是另一条 → 先关掉旧的再展开新的
   if (existing) {
     const sameItem = existing.previousElementSibling === itemEl;
-    existing.remove();
+    closeDetail(existing);
     if (sameItem) return;
   }
   const item = (boardData[platformId] || []).find((i) => i.id === itemEl.dataset.id);
   if (item) {
     itemEl.insertAdjacentHTML("afterend", renderDetail(item));
+    itemEl.classList.add("active"); // 展开条目保持高亮，状态翻转式反馈
   }
+}
+
+// 动画式收起：先播收起动效，动画结束（或有 300ms 兜底）再从 DOM 移除（Day 11）
+function closeDetail(detailEl) {
+  const item = detailEl.previousElementSibling;
+  if (item && item.classList.contains("item")) item.classList.remove("active");
+  detailEl.classList.add("closing");
+  detailEl.addEventListener("animationend", () => detailEl.remove(), { once: true });
+  setTimeout(() => {
+    if (detailEl.isConnected) detailEl.remove(); // 兜底：动画事件万一没触发
+  }, 300);
 }
 
 // 详情区域 HTML：完整标题 + 排名/热度/来源 + 查看原文 + 收起 + 收藏（F3）
@@ -262,9 +274,9 @@ function refreshAfterFavChange() {
 
 // 「收起」按钮和收藏相关按钮（都在详情/收藏面板里，统一在 document 上委托）
 document.addEventListener("click", (event) => {
-  // 收起
+  // 收起（Day 11：改走动画式收起）
   if (event.target.classList.contains("detail-close")) {
-    event.target.closest(".detail").remove();
+    closeDetail(event.target.closest(".detail"));
     return;
   }
   // 收藏 / 取消收藏（详情里的星标按钮）
