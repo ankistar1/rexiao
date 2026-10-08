@@ -511,8 +511,7 @@ function renderRoute() {
   document.querySelectorAll(".nav-link").forEach((link) => {
     link.classList.toggle("active", link.dataset.view === route);
   });
-  // 刷新按钮只在热榜视图有意义（收藏/关于不联网拉数据）
-  document.getElementById("refresh-btn").classList.toggle("hidden", route !== "hot");
+  // 刷新按钮已挪到 view-hot 内部，跟着视图一起隐藏，无需单独处理
 }
 
 window.addEventListener("hashchange", renderRoute);

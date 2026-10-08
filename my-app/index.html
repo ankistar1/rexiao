@@ -15,9 +15,6 @@
       <a href="#/fav" class="nav-link" data-view="fav">★ 我的收藏</a>
       <a href="#/about" class="nav-link" data-view="about">关于</a>
     </nav>
-    <div class="header-actions">
-      <button id="refresh-btn" class="refresh-btn">刷新</button>
-    </div>
   </header>
 
   <!-- 三个视图（Day 13 hash 路由）：同一时刻只显示一个，由 app.js 按 #/xxx 切换 -->
@@ -38,6 +35,7 @@
     <div class="filter-bar" id="filter-bar">
       <input type="text" id="filter-input" class="filter-input" placeholder="输入关键词，同时筛选三个榜单…" maxlength="30" autocomplete="off">
       <span class="filter-count" id="filter-count"></span>
+      <button id="refresh-btn" class="refresh-btn">刷新</button>
     </div>
 
     <section class="board" id="board-weibo">

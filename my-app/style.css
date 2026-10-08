@@ -61,6 +61,11 @@ body {
   gap: 8px;
 }
 
+/* 刷新按钮在筛选栏内靠右：让它贴近「数据控制」语义区（Day 14.5 修复视觉归属） */
+.filter-bar .refresh-btn {
+  margin-left: auto;
+}
+
 .filter-input {
   flex: 1;
   min-width: 0; /* flex 子项防长内容撑宽（Day 7 教训） */
@@ -140,7 +145,6 @@ body {
 
 /* 刷新按钮 */
 .refresh-btn {
-  margin-top: 8px;
   padding: 8px 24px; /* 原 6px 24px：加高触控区（桌面约 35px 高，移动端另有 44px 兜底） */
   border: 1px solid #d0d1d3;
   border-radius: 16px;
@@ -148,6 +152,7 @@ body {
   color: var(--text-sub);
   font-size: 13px;
   cursor: pointer;
+  white-space: nowrap; /* 防止「刷新」两字被换行（filter-bar 内 flex 排列时） */
 }
 
 .refresh-btn:hover {
@@ -295,12 +300,6 @@ body {
 }
 
 /* ===== F3 收藏与备注 ===== */
-.header-actions {
-  display: flex;
-  gap: 12px; /* 间距档位：12（原 10px） */
-  justify-content: center;
-  margin-top: 12px;
-}
 
 /* 已收藏的星标按钮 */
 .btn-starred {
