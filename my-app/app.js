@@ -336,7 +336,8 @@ function renderDetail(item) {
     '<button class="btn btn-ghost detail-close" type="button">收起</button>' +
     "</div>" +
     '<div class="fav-note hidden" data-id="' + item.id + '">' +
-    '<input type="text" class="note-input" placeholder="给这条收藏写点备注（可留空）…" maxlength="100">' +
+    // value 回填已有备注（Day 14.6 修）：之前打开详情永远是空框，用户会以为备注丢了（实际存在 localStorage）
+    '<input type="text" class="note-input" placeholder="给这条收藏写点备注（可留空）…" maxlength="100" value="' + escapeHtml((fav && fav.note) || "") + '">' +
     '<button class="btn btn-ghost note-save" type="button">保存备注</button>' +
     "</div>" +
     "</li>"
@@ -393,7 +394,29 @@ document.addEventListener("click", (event) => {
     if (fav) {
       window.open(fav.url, "_blank", "noopener");
     }
+    return;
   }
+  // 收藏面板里点「✎ 备注」：展开/收起写备注编辑器（Day 14.6 补的入口）
+  if (event.target.classList.contains("fav-note-toggle")) {
+    const editor = event.target.closest(".fav-item").querySelector(".fav-note");
+    if (editor) {
+      const wasHidden = editor.classList.contains("hidden");
+      editor.classList.toggle("hidden");
+      if (wasHidden) {
+        const input = editor.querySelector(".note-input");
+        if (input) input.focus();
+      }
+    }
+    return;
+  }
+  // 收藏备注编辑器的「收起」按钮
+  if (event.target.classList.contains("note-cancel")) {
+    const editor = event.target.closest(".fav-note");
+    if (editor) editor.classList.add("hidden");
+    return;
+  }
+  // 注：收藏页的「保存」按钮 class 同为 note-save，由上面的 handleNoteSave（第 363 行分支）统一处理，
+  //     它会 setNote + renderFavPanel（meta 行随即显示新备注、编辑器收起）。这里不再重复处理。
 });
 
 // ===== F3 收藏与备注：localStorage 存/读/删 =====
@@ -540,12 +563,19 @@ function renderFavPanel() {
     .map((fav) => {
       const note = fav.note ? escapeHtml(fav.note) : '<span class="no-note">未写备注</span>';
       return (
-        '<li class="fav-item">' +
+        '<li class="fav-item" data-fav-id="' + fav.itemId + '">' +
         '<div class="fav-main">' +
         '<p class="fav-title">' + escapeHtml(fav.title) + "</p>" +
         '<p class="fav-meta">' + escapeHtml(favTitlePlatform(fav.itemId)) + " · 收藏于 " + formatTime(new Date(fav.collectedAt)) + " · " + note + "</p>" +
+        // 写/改备注编辑器（Day 14.6 修复收藏视图无备注入口）：默认 hidden，点 ✎ 备注展开
+        '<div class="fav-note hidden" data-id="' + fav.itemId + '">' +
+        '<input type="text" class="note-input" placeholder="给这条收藏写点备注（可留空）…" maxlength="100" value="' + escapeHtml(fav.note || "") + '">' +
+        '<button class="btn btn-ghost note-save" type="button">保存</button>' +
+        '<button class="btn btn-ghost note-cancel" type="button">收起</button>' +
+        "</div>" +
         "</div>" +
         '<div class="fav-actions">' +
+        '<button class="btn btn-ghost fav-note-toggle" data-id="' + fav.itemId + '" type="button">✎ 备注</button>' +
         '<button class="btn btn-ghost fav-expand" data-id="' + fav.itemId + '" type="button">查看原文</button>' +
         '<button class="btn btn-ghost fav-remove" data-id="' + fav.itemId + '" type="button">取消收藏</button>' +
         "</div>" +
