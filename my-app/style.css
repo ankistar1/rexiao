@@ -489,6 +489,19 @@ body {
   .filter-input {
     min-height: 44px; /* 筛选框同规范（Day 12） */
   }
+
+  /* Day 14 修复：触控目标补齐 —— Day 9 的 44px 规范当时只覆盖了 button，
+     漏了同为点击目标的 <a> 导航和 <li> 条目；手机实测导航 30px / 条目 34px。
+     教训：触控审查要按"可点击"枚举，不能按"元素类型"枚举（手机宽度体检发现）。 */
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .item {
+    min-height: 44px;
+  }
 }
 
 /* 通用隐藏规则（Day 13）：.hidden 只改 display，不销毁元素。
