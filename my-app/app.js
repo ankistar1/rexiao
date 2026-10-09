@@ -206,11 +206,11 @@ function filteredItemsHtml(platform) {
   if (matched.length) {
     return matched.map(renderItem).join("");
   }
-  // 无结果：空态文案（筛选词要转义，Skill 第 4 条）+「清空筛选」出口（Skill 第 2 条）
+  // 无结果：只渲染空态文案（筛选词要转义，Skill 第 4 条）。
+  // 出口（清空筛选）是筛选栏里那个全局按钮，不再每栏各渲染一个（Day 15 修复同屏 3 个重复 CTA）。
   return (
-    '<li class="placeholder">没有匹配「' + escapeHtml(filterKeyword) + '」的条目 ' +
-    '<button class="btn btn-ghost filter-clear" type="button">清空筛选</button>' +
-    "</li>"
+    '<li class="placeholder">没有匹配「' + escapeHtml(filterKeyword) +
+    '」的条目，清空筛选可查看全部</li>'
   );
 }
 
@@ -232,6 +232,8 @@ function updateFilterCount() {
     }
   });
   document.getElementById("filter-count").textContent = filterKeyword ? matched + "/" + total + " 条" : "";
+  // 「清空筛选」按钮只在筛选生效时出现（未筛选时它没有意义）——唯一出口，Day 15
+  document.getElementById("filter-clear-btn").classList.toggle("hidden", !filterKeyword);
 }
 
 // 应用筛选到所有已渲染的栏
@@ -373,7 +375,7 @@ document.addEventListener("click", (event) => {
     }
     return;
   }
-  // 空态里的「清空筛选」出口（Day 12，Skill 第 2 条）
+  // 筛选栏的「清空筛选」出口（Day 12 起，Day 15 从空态挪进筛选栏，成为全局唯一出口）
   if (event.target.classList.contains("filter-clear")) {
     const input = document.getElementById("filter-input");
     input.value = "";

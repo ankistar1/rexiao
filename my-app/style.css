@@ -61,9 +61,14 @@ body {
   gap: 8px;
 }
 
-/* 刷新按钮在筛选栏内靠右：让它贴近「数据控制」语义区（Day 14.5 修复视觉归属） */
-.filter-bar .refresh-btn {
+/* 筛选栏右侧的操作组：清空筛选 + 刷新，整组靠右。
+   Day 15：靠右从「refresh-btn 自己 margin-left:auto」上移到整组，清空按钮藏起来时也不会跑位。 */
+.filter-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0; /* 不被长筛选词挤扁 */
 }
 
 .filter-input {
@@ -502,6 +507,11 @@ body {
 
   /* 触控区兜底：手指点按目标至少 44px 高（Day 9 触控区修复） */
   .refresh-btn {
+    min-height: 44px;
+  }
+
+  /* 清空筛选按钮同规范（Day 15：它进了筛选栏，也是手指点按目标） */
+  .filter-actions .btn {
     min-height: 44px;
   }
 

@@ -35,7 +35,11 @@
     <div class="filter-bar" id="filter-bar">
       <input type="text" id="filter-input" class="filter-input" placeholder="输入关键词，同时筛选三个榜单…" maxlength="30" autocomplete="off">
       <span class="filter-count" id="filter-count"></span>
-      <button id="refresh-btn" class="refresh-btn">刷新</button>
+      <!-- 清空筛选：全局唯一出口（Day 15 修复重复 CTA），只在筛选生效时出现 -->
+      <div class="filter-actions">
+        <button id="filter-clear-btn" class="btn btn-ghost filter-clear hidden" type="button">清空筛选</button>
+        <button id="refresh-btn" class="refresh-btn">刷新</button>
+      </div>
     </div>
 
     <section class="board" id="board-weibo">
