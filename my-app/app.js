@@ -337,7 +337,10 @@ function renderDetail(item) {
     '<a class="btn btn-primary" href="' + item.url + '" target="_blank" rel="noopener">查看原文</a>' +
     '<button class="btn btn-ghost detail-close" type="button">收起</button>' +
     "</div>" +
-    '<div class="fav-note hidden" data-id="' + item.id + '">' +
+    // 备注框默认显隐跟随收藏状态（Day 15.2 修）：之前硬编码 hidden，
+    // 导致「已收藏条目重新打开详情」永远看不到备注框 —— 写过的备注改不了、也看不见。
+    // 与上面的 fav-btn 图标判断对称。
+    '<div class="fav-note' + (fav ? "" : " hidden") + '" data-id="' + item.id + '">' +
     // value 回填已有备注（Day 14.6 修）：之前打开详情永远是空框，用户会以为备注丢了（实际存在 localStorage）
     '<input type="text" class="note-input" placeholder="给这条收藏写点备注（可留空）…" maxlength="100" value="' + escapeHtml((fav && fav.note) || "") + '">' +
     '<button class="btn btn-ghost note-save" type="button">保存备注</button>' +

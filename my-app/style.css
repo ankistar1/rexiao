@@ -276,16 +276,25 @@ body {
   margin-top: 12px; /* 间距档位：12（原 10px） */
   display: flex;
   gap: 12px;
+  flex-wrap: wrap; /* Day 15.2：窄屏放不下就整行折，而不是把每个按钮压缩换行 */
 }
 
 /* 详情里的两个按钮 */
 .btn {
-  display: inline-block;
+  /* inline-flex 而非 inline-block：设置 min-height 时文字才能垂直居中（Day 15.2） */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 6px 16px; /* 间距档位：6/16（原 5px，与输入框统一） */
   border-radius: 14px;
   font-size: 13px;
   cursor: pointer;
   text-decoration: none;
+  /* Day 15.2：按钮文字永不折行 + 作为 flex 子项不被压缩。
+     之前只写了内边距，窄容器里 flex 按比例压缩按钮，把「保存备注」压成竖排 4 行、
+     「查看原文」压成 2 行（360px 实测）。放不下时应该由容器换行，而不是把按钮压碎。 */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-primary {
@@ -318,6 +327,7 @@ body {
   display: flex;
   gap: 8px;
   margin-top: 12px; /* 间距档位：12（原 10px） */
+  flex-wrap: wrap; /* Day 15.2：窄屏折行兜底 */
 }
 
 .fav-note.hidden {
@@ -326,6 +336,7 @@ body {
 
 .note-input {
   flex: 1;
+  min-width: 0; /* Day 15.2：flex 子项防撑宽，保证输入框先让位给「保存备注」按钮 */
   padding: 6px 12px; /* 间距档位：6→8？输入框内边距用 6/12 与 .btn 一致 */
   border: 1px solid #d9d9de;
   border-radius: 6px;
@@ -378,7 +389,11 @@ body {
   justify-content: flex-end; /* 换行时靠右对齐 */
 }
 
-/* 收藏面板 / 备注编辑器按钮触控兜底（Day 14.6：fav-actions 加了第 3 个按钮后 360px 下只有 33px，违反 44px 规范） */
+/* 详情操作区 / 收藏面板 / 备注编辑器按钮触控兜底（≥44px）
+   Day 14.6：fav-actions 加了第 3 个按钮后 360px 下只有 33px，违反 44px 规范
+   Day 15.2：详情区按钮同样只有 33px —— 此前是靠"文字被压成 2 行"把高度撑到 52px 蒙混过关，
+             修掉压缩换行后露出真值。教训：高度断言不能被"内容换行撑高"污染（同日发现）。 */
+.detail-actions .btn,
 .fav-actions .btn,
 .fav-note .btn {
   min-height: 44px;
